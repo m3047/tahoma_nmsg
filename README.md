@@ -20,7 +20,8 @@ Tested with the following versions of Scapy:
 ## Installation
 
 Download the tarfile and unpack it in your project. It will unpack into a
-directory `tahoma_nmsg`.
+directory `tahoma_nmsg`, which contains another directory named `tahoma_nmsg` which
+is the actual python package.
 
 ## Usage
 
@@ -33,37 +34,34 @@ Subclasses of `Protobuf` are both a packet and a field: you define the packet
 and then reference the `Field()` factory method to declare an instance of
 the protobuf within `fields_desc` in a packet definition.
 
-`report.py` is a simple example for consuming SIE channel 213 from an 
-`sratunnel` instance terminated at a local UDP port (127.0.0.1:5000). It can
-also read from pcap files. To run the program, copy it to the enclosing directory
-and run it from there:
+There are two `report*.py` examples for consuming SIE channel 213 data.
+
+### report-socket.py
+
+Consumes SIE channel 213 from an `sratunnel` instance terminated at a local UDP
+port (127.0.0.1:5000). Best way to do this is with two windows.
+
+In one, run the `sratunnel` instance, which will probably look something like this:
 
 ```
-cp report.py ..
-cd ..
-python report.py
+sratunnel -c ch213 -w 'ch=213' -o nmsg:127.0.0.1,5000 ...
 ```
 
-To read from a PCAP file named `ch213.pcap`:
-
-1) Comment out the lines:
+In the other, run `report-socket.py`:
 
 ```
-import socket
-
-sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-sock.bind((UDP_IP, UDP_PORT))
-
-sniff(opened_socket=StreamSocket(sock,TOP_PACKET), prn=write)
+./report-socket.py
 ```
 
-2) Uncomment the lines:
+### report-pcap-file.py
+
+Consumes data from a PCAP of SIE channel 213. A sample is provided, which was produced
+from the accompanying `ch213.jsonl` by running `nmsgtool -j ch213.jsonl -s 127.0.0.1/5000,10 --unbuffered`.
+
+Run it and you'll see output:
 
 ```
-from scapy.all import bind_layers
-bind_layers(UDP, NMSG, dport=UDP_PORT)
-
-sniff(offline='ch213.pcap', prn=write)
+./report-pcap-file.py
 ```
 
 ## Idioms
