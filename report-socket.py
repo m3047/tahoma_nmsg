@@ -20,27 +20,15 @@ other words something like:
 
   sratunnel -c ch213 -o nmsg:127.0.0.1,5000 ...
   
-To run this program, copy it to the enclosing directory and run that:
-
-  cp report.py ..
-  cd ..
-  python report.py
-  
 """
 
 from sys import stderr
 from scapy.all import sniff, StreamSocket, NoPayload
 
-#from scapy.config import conf
-#conf.debug_dissector = True
-
 from tahoma_nmsg.nmsg import NMSG, NmsgContainer, NmsgPayload, NmsgNewDomain
 
 UDP_IP = "127.0.0.1"
 UDP_PORT = 5000
-
-#from scapy.all import UDP, bind_layers
-#bind_layers(UDP, NMSG, dport=UDP_PORT)
 
 import socket
 
@@ -48,7 +36,6 @@ TOP_PACKET = NMSG
 PAYLOAD_PACKET = NmsgNewDomain
 
 def write(pkt):
-    #print repr(pkt)
     opkt = pkt
     while True:
         if isinstance(pkt,PAYLOAD_PACKET):
@@ -63,11 +50,6 @@ def write(pkt):
 def main():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind((UDP_IP, UDP_PORT))
-    #while True:
-        #print len(sock.recv(4096))
-
-    # There are 4 records in the shipped pcap sample. You may need to adjust this.
-    #sniff(offline='tahoma_nmsg/ch213.pcap',count=4,prn=write)
     sniff(opened_socket=StreamSocket(sock,TOP_PACKET), prn=write)
     return
 
