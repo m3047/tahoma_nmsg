@@ -74,6 +74,16 @@ class ProtobufField(Field):
         self.sz = struct.calcsize(self.fmt)
         return
     
+    def check_field_id(self,pkt,id):
+        if id != self.pb_id:
+            raise FieldIDMismatchError(
+                        'Expected %s/%d saw %s/%d' %
+                        (   self.name, self.pb_id,
+                            (id in pkt.fields_by_id) and pkt.fields_by_id[id].name or '--', id
+                        )
+                    )
+        return
+    
     @staticmethod
     def get_varint(s):
         i = 0
@@ -128,13 +138,8 @@ class PbAnyField(ProtobufField):
         s,id,wtype = self.get_field_header(s)
         if self.pb_id is None:
             self.pb_id = id
-        elif id != self.pb_id:
-            raise FieldIDMismatchError(
-                        'Expected %s/%d saw %s/%d' %
-                        (   self.name, self.pb_id,
-                            (id in self.fields_by_id) and self.fields_by_id[id].name or '--', id
-                        )
-                    )
+        else:
+            self.check_field_id(pkt,id)
         if wtype == 2:  # descriptor
             s,l = self.get_varint(s)
             self.set_format(l)
@@ -185,13 +190,8 @@ class PbBytesField(ProtobufField):
             s,id,wtype = self.get_field_header(s)
             if self.pb_id is None:
                 self.pb_id = id
-            elif id != self.pb_id:
-                raise FieldIDMismatchError(
-                            'Expected %s/%d saw %s/%d' %
-                            (   self.name, self.pb_id,
-                                (id in self.fields_by_id) and self.fields_by_id[id].name or '--', id
-                            )
-                        )
+            else:
+                self.check_field_id(pkt,id)
             if wtype == 2:  # descriptor
                 s,l = self.get_varint(s)
             else:
@@ -225,13 +225,8 @@ class ProtobufVarintField(ProtobufField):
         s,id,wtype = self.get_field_header(s)
         if self.pb_id is None:
             self.pb_id = id
-        elif id != self.pb_id:
-            raise FieldIDMismatchError(
-                        'Expected %s/%d saw %s/%d' %
-                        (   self.name, self.pb_id,
-                            (id in self.fields_by_id) and self.fields_by_id[id].name or '--', id
-                        )
-                    )
+        else:
+            self.check_field_id(pkt,id)
         if wtype == 0:  # varint
             olen = len(s)
             s,v = self.get_varint(s)
@@ -266,13 +261,8 @@ class ProtobufFixedIntField(ProtobufField):
         s,id,wtype = self.get_field_header(s)
         if self.pb_id is None:
             self.pb_id = id
-        elif id != self.pb_id:
-            raise FieldIDMismatchError(
-                        'Expected %s/%d saw %s/%d' %
-                        (   self.name, self.pb_id,
-                            (id in self.fields_by_id) and self.fields_by_id[id].name or '--', id
-                        )
-                    )
+        else:
+            self.check_field_id(pkt,id)
         if wtype == self.WTYPE:
             self.set_format(self.BYTES)
         else:
@@ -331,13 +321,8 @@ class ProtobufEmbeddedField(PbBytesField):
             s,id,wtype = self.get_field_header(s)
             if self.pb_id is None:
                 self.pb_id = id
-            elif id != self.pb_id:
-                raise FieldIDMismatchError(
-                            'Expected %s/%d saw %s/%d' %
-                            (   self.name, self.pb_id,
-                                (id in self.fields_by_id) and self.fields_by_id[id].name or '--', id
-                            )
-                        )
+            else:
+                self.check_field_id(pkt,id)
             if wtype != 2:
                 raise FieldTypeMismatchError('Expected type 2, got type %d' % (wtype,))
             s,l = self.get_varint(s)
