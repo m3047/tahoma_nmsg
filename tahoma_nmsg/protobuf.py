@@ -244,7 +244,7 @@ class ProtobufFixedIntField(ProtobufField):
         i = len(x) - 1
         accum = ord(x[i]) & 0xff
         i -= 1
-        while i > 0:
+        while i >= 0:
             accum <<= 8
             accum |= ord(x[i]) & 0xff
             i -= 1
